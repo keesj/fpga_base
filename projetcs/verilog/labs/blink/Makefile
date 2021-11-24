@@ -1,6 +1,11 @@
 TOP_MODULE=blink
 
-all: build/$(TOP_MODULE).bin
+
+
+all:  build build/$(TOP_MODULE).bin
+
+build:
+	mkdir build
 
 build/$(TOP_MODULE).bin: build/$(TOP_MODULE).asc  
 	icepack $< $@
