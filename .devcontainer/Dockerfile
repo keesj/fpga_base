@@ -45,7 +45,7 @@ WORKDIR /scripts
 RUN chmod +x build.sh
 RUN chmod +x build_ide.sh
 RUN cd /scripts/ ;  ./build.sh
-#RUN cd /scripts/ ;  ./build_ide.sh
+RUN cd /scripts/ ;  ./build_ide.sh
 
 
 # [Optional] Set the default user. Omit if you want to keep the default as root.
