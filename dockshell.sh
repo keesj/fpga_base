@@ -9,14 +9,10 @@ then
         exit 1
 fi
 
-if ! (docker images | grep ${NAME} > /dev/null)
-then
-    echo "Image does not exist building"
-    docker build  \
-             --build-arg USER_UID=$(id -u) \
-             --build-arg USER_GID=$(id -g) \
-            -t ${NAME} -f .devcontainer/Dockerfile  .
-fi
+docker build  \
+    --build-arg USER_UID=$(id -u) \
+    --build-arg USER_GID=$(id -g) \
+    -t ${NAME} -f .devcontainer/Dockerfile  .
 echo run docker rmi ${NAME} to force a rebuild
 echo 
 docker run -it -v $(pwd):/workspace/software ${NAME} /bin/bash 

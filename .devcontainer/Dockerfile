@@ -12,10 +12,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 ## account creation (Following) 
 # https://code.visualstudio.com/docs/remote/containers-advanced#_adding-a-nonroot-user-to-your-dev-container
+# This allows to override the user id using docker build --build-arg USER_UID=$(id -u)
 ARG USERNAME=user
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -31,27 +31,27 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # * Anything else you want to do like clean up goes here *
 # ********************************************************
 
+# Install usefull tools silverseacher-ag (grep killer) vim...
+RUN apt-get -q update && \
+     apt-get install -yq  curl build-essential iverilog verilator git moreutils vim tmux graphviz python3-sphinx python3-pip silversearcher-ag python-is-python3 libjson-c-dev && \
+     rm -rf /var/lib/apt/lists/*
 # 
 # Build yosys from sources (look at build.sh for the steps performed)
 #
 RUN mkdir -p /scripts
 COPY .devcontainer/build.sh /scripts
+COPY .devcontainer/build_ide.sh /scripts
 WORKDIR /scripts
 RUN chmod +x build.sh
+RUN chmod +x build_ide.sh
 RUN cd /scripts/ ;  ./build.sh
+#RUN cd /scripts/ ;  ./build_ide.sh
+
 
 # [Optional] Set the default user. Omit if you want to keep the default as root.
 USER $USERNAME
 
-#
-# Install some packages required for verilog but also some other cool ones like 
-# * silverseacher-ag (grep killer)
-# * vim an editor :P
 # 
-RUN sudo apt-get -q update && \
-     sudo apt-get install -yq  curl build-essential iverilog verilator git moreutils vim tmux graphviz python3-sphinx python3-pip silversearcher-ag python-is-python3 libjson-c-dev && \
-     sudo rm -rf /var/lib/apt/lists/*
-
 # Install litex & risc-v toolchain in ~/litex
 RUN mkdir -p ~/litex
 WORKDIR ~/litex
@@ -63,8 +63,9 @@ RUN cd ~/litex && curl -o litex_setup.py https://raw.githubusercontent.com/enjoy
 RUN echo 'export PATH=${PATH}:~/.local/bin' >> ~/.bashrc
 RUN echo 'export PATH=$PATH:$(echo ~/litex/riscv64-*/bin/)' >>  ~/.bashrc
 
-RUN python -mpip install sphinx-autobuild  sphinxcontrib-plantuml  sphinx-rtd-theme pillow
-RUN python -mpip install git+https://github.com/tonybaloney/sphinxcontrib-confluencebuilder
- 
+# For documentation purposes
+RUN pip install sphinx-autobuild  sphinxcontrib-plantuml  sphinx-rtd-theme pillow
+RUN pip install git+https://github.com/tonybaloney/sphinxcontrib-confluencebuilder
+
 COPY .devcontainer/.tmux.conf /home/$USERNAME/
 WORKDIR /workspace/software
