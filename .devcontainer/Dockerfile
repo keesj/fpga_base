@@ -33,7 +33,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 # Install usefull tools silverseacher-ag (grep killer) vim...
 RUN apt-get -q update && \
-     apt-get install -yq  curl build-essential iverilog verilator git moreutils vim tmux graphviz python3-sphinx python3-pip silversearcher-ag python-is-python3 libjson-c-dev && \
+     apt-get install -yq  curl build-essential iverilog verilator git moreutils vim tmux graphviz python3-sphinx python3-pip silversearcher-ag libjson-c-dev && \
      rm -rf /var/lib/apt/lists/*
 # 
 # Build yosys from sources (look at build.sh for the steps performed)
