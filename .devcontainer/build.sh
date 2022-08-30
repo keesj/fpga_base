@@ -5,8 +5,7 @@ set -x
 sudo apt-get update
 sudo  DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential clang bison flex libreadline-dev \
                      gawk tcl-dev libffi-dev git mercurial graphviz   \
-                     xdot pkg-config python python3 libftdi-dev \
-                     qt5-default python3-dev libboost-all-dev cmake libeigen3-dev
+                     qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools python3-dev libboost-all-dev cmake libeigen3-dev libftdi-dev
 
 
 rm -rf icestorm arachne-pnr nextpnr yosys
