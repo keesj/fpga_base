@@ -39,12 +39,18 @@ RUN apt-get -q update && \
 # Build yosys from sources (look at build.sh for the steps performed)
 #
 RUN mkdir -p /scripts
-COPY .devcontainer/build.sh /scripts
-COPY .devcontainer/build_ide.sh /scripts
 WORKDIR /scripts
+
+COPY .devcontainer/build.sh /scripts
 RUN chmod +x build.sh
-RUN chmod +x build_ide.sh
 RUN cd /scripts/ ;  ./build.sh
+
+COPY .devcontainer/yosys_systemverilog.sh /scripts
+RUN chmod +x yosys_systemverilog.sh
+RUN cd /scripts/ ;  ./yosys_systemverilog.sh
+
+COPY .devcontainer/build_ide.sh /scripts
+RUN chmod +x build_ide.sh
 RUN cd /scripts/ ;  ./build_ide.sh
 
 
