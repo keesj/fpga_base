@@ -1,10 +1,14 @@
 module blink(
     input clk,
-    output reg led
+    output  led
 );
-  initial led =  1'b0;
+
+  reg [31:0]counter;
+  initial counter = 32'd0;
+
+  assign led = counter[21];
 
   always @(posedge clk) begin
-        led <= ~led;
+        counter <= counter +1;
   end
 endmodule
