@@ -1,0 +1,11 @@
+set_io --warn-no-port clk 21
+
+set_io led1 99
+set_io led2 98
+set_io led3 97
+set_io led4 96
+set_io led5 95
+
+# FTDI Port B UART
+set_io uart_txd 8  # UART TX
+set_io uart_rxd 9  # UART RX
