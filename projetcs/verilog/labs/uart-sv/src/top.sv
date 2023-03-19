@@ -44,10 +44,11 @@ wire        uart_tx_en;
 reg  [PAYLOAD_BITS-1:0]  led_reg;
 assign      {led4,led3,led2,led1} = led_reg[3:0];
 
+reg green;
+assign led5 = green;
+
 // ------------------------------------------------------------------------- 
 
-assign uart_tx_data = uart_rx_data;
-assign uart_tx_en   = uart_rx_valid;
 
 always @(posedge clk) begin
     if(!resetn) begin
@@ -57,9 +58,54 @@ always @(posedge clk) begin
     end
 end
 
+parameter TX_BUFFER_BYTES = 16 ;
+parameter TX_BUFFER = TX_BUFFER_BYTES * 8;
 
+
+// TX FIFO
+  /* Buffer to store X bytes, where X it a power of 2*/
+  reg [TX_BUFFER-1:0] tx_buf;
+  reg [8:0] tx_size;
+
+    reg b ;
+always @(posedge clk) begin
+    uart_tx_en <= 1'b0;
+    b <= 1'b0;
+    if(!resetn) begin
+        tx_size <= 8'h0;
+	    tx_buf <= "0123456789abcdef";
+    end else begin 
+        if( !uart_tx_busy && !b && tx_size > 0) begin
+	       uart_tx_en <= 1'b1;	
+           b <= 1'b1;
+
+           uart_tx_data <= tx_buf[TX_BUFFER-1:TX_BUFFER-8];
+           tx_buf <= tx_buf<<8;
+	       //tx_buf <= {tx_buf[TX_BUFFER-1:0],tx_buf[TX_BUFFER-1:TX_BUFFER-8]};
+	       tx_size <= tx_size -1;
+        end else if( uart_rx_valid ) begin
+            if (tx_size ==0) begin
+	            tx_size <= 8'h10;
+                tx_buf <= "0123456789abcd\r\n";
+                //tx_buf[TX_BUFFER-1:TX_BUFFER-8]  <= "Hello\r\n";//{8'h61,8'h62,8'h63,8'h64};
+           end
+
+        end
+    end
+end
 // ------------------------------------------------------------------------- 
 
+always @(posedge clk) begin
+    if(!resetn) begin
+        green <= 1;
+    end else if(uart_rx_valid) begin
+	//    if (tx_size == 0) begin
+	//	tx_buf  = {8'h61,8'h62,8'h63,8'h64};
+	//	tx_size  = 5'h4;
+        	green = ~green;
+	 //   end
+    end
+end
 //
 // UART RX
 uart_rx #(
