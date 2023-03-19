@@ -58,10 +58,11 @@ always @(posedge clk) begin
     end
 end
 
-parameter TX_BUFFER_BYTES = 16 ;
+parameter TX_BUFFER_BYTES = 32 ;
 parameter TX_BUFFER = TX_BUFFER_BYTES * 8;
 
-
+//HEX 
+  //reg [7:0] hex[16:0] ="0123456789abcdef";
 // TX FIFO
   /* Buffer to store X bytes, where X it a power of 2*/
   reg [TX_BUFFER-1:0] tx_buf;
@@ -73,21 +74,18 @@ always @(posedge clk) begin
     b <= 1'b0;
     if(!resetn) begin
         tx_size <= 8'h0;
-	    tx_buf <= "0123456789abcdef";
     end else begin 
         if( !uart_tx_busy && !b && tx_size > 0) begin
-	       uart_tx_en <= 1'b1;	
-           b <= 1'b1;
+	   uart_tx_en <= 1'b1;	
+           b <= 1'b1; // delay
 
            uart_tx_data <= tx_buf[TX_BUFFER-1:TX_BUFFER-8];
            tx_buf <= tx_buf<<8;
-	       //tx_buf <= {tx_buf[TX_BUFFER-1:0],tx_buf[TX_BUFFER-1:TX_BUFFER-8]};
-	       tx_size <= tx_size -1;
+	   tx_size <= tx_size -1;
         end else if( uart_rx_valid ) begin
             if (tx_size ==0) begin
-	            tx_size <= 8'h10;
-                tx_buf <= "0123456789abcd\r\n";
-                //tx_buf[TX_BUFFER-1:TX_BUFFER-8]  <= "Hello\r\n";//{8'h61,8'h62,8'h63,8'h64};
+	        tx_size <= 8'd13;
+                tx_buf[TX_BUFFER-1:TX_BUFFER -(8 * 13)] <= "Hello World\r\n";
            end
 
         end
