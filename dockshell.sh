@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # find a nice name for the container
-NAME=project-`basename \`realpath .\``
+NAME=`basename \`realpath .\``
 
 if grep docker /proc/self/cgroup 2>&1 1>/dev/null
 then

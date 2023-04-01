@@ -8,7 +8,8 @@ sudo  DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential clang bi
                      qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools python3-dev libboost-all-dev cmake libeigen3-dev libftdi-dev
 
 
-rm -rf icestorm arachne-pnr nextpnr yosys
+#rm -rf icestorm arachne-pnr nextpnr yosys
+#rm -rf icestorm arachne-pnr nextpnr nextpnr-ecp5 yosys
 
 date
 (
@@ -21,6 +22,21 @@ sudo make install
 (
 git clone https://github.com/cseed/arachne-pnr.git arachne-pnr
 cd arachne-pnr
+make -j$(nproc)
+sudo make install
+)
+
+(
+git clone --recursive https://github.com/YosysHQ/prjtrellis
+cd prjtrellis/libtrellis
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local .
+make
+sudo make install
+)
+(
+git clone --recursive https://github.com/YosysHQ/nextpnr nextpnr-ecp5
+cd nextpnr-ecp5
+cmake -DARCH=ecp5 -DCMAKE_INSTALL_PREFIX=/usr/local .
 make -j$(nproc)
 sudo make install
 )
@@ -41,6 +57,6 @@ make -j$(nproc)
 sudo make install
 )
 
-rm -rf icestorm arachne-pnr nextpnr yosys
+#rm -rf icestorm arachne-pnr nextpnr nextpnr-ecp5 yosys
 
 

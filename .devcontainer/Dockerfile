@@ -45,9 +45,9 @@ COPY .devcontainer/build.sh /scripts
 RUN chmod +x build.sh
 RUN cd /scripts/ ;  ./build.sh
 
-COPY .devcontainer/yosys_systemverilog.sh /scripts
-RUN chmod +x yosys_systemverilog.sh
-RUN cd /scripts/ ;  ./yosys_systemverilog.sh
+#COPY .devcontainer/yosys_systemverilog.sh /scripts
+#RUN chmod +x yosys_systemverilog.sh
+#RUN cd /scripts/ ;  ./yosys_systemverilog.sh
 
 COPY .devcontainer/build_ide.sh /scripts
 RUN chmod +x build_ide.sh
