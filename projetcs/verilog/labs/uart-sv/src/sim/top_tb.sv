@@ -2,7 +2,7 @@
 
 module top_tb;
 
-  parameter CLK_HZ = 2_000_000;
+  parameter CLK_HZ = 4_000_000;
   logic clk = 1'b0;
   wire        uart_rxd;
   wire        uart_txd;
@@ -22,6 +22,21 @@ module top_tb;
     .led5(led5)
 );
 
+
+//wire       uart_rxd     ;
+wire       uart_rx_break;
+wire       uart_rx_valid;
+wire  [7:0]uart_rx_data ;
+
+uart_rx #(.CLK_HZ(CLK_HZ / 20)) rx0 (
+.clk          ,
+.resetn       ,
+.uart_rxd(uart_txd) , // glue to top.v
+.uart_rx_en(1'b1)   , // alway enable
+.uart_rx_break,
+.uart_rx_valid,
+.uart_rx_data  
+);
 
 logic resetn;
 //wire  uart_txd;
@@ -58,16 +73,27 @@ uart_tx  #(.CLK_HZ(CLK_HZ))  uart_tx1(
         @(posedge clk);
         @(posedge clk);
         @(posedge clk);
+	// Send a single bit
         uart_tx_en  = 1'b1;
         uart_tx_data = ascii[7:0];
         @(posedge clk);
         uart_tx_en = 1'b0;
 
+
         #200000 $finish();
   end
 
+  always_ff @(posedge clk) begin
+	  if (uart_rx_valid && ! uart_rx_break) begin
+		$display("BIT %c" , uart_rx_data);
+	  end
+	  if (uart_rx_valid &&  uart_rx_break) begin
+		$display("BREAK %c" , uart_rx_data);
+	  end
+  end
+
   initial begin
-        $monitor($time, "clk=%d, led=%b resetn=%d",clk,led0,resetn);
+        //$monitor($time, "clk=%d, led=%b resetn=%d",clk,led0,resetn);
   end
 
   initial begin
