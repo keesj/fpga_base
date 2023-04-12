@@ -67,6 +67,7 @@ reg [PAYLOAD_BITS-1:0] recieved_data;
 //
 // Storage for the stop bit value to detect BREAK
 reg stop_bit;
+reg stop_bit_done;
 
 //
 // Counter for the number of cycles over a packet bit.
@@ -94,7 +95,7 @@ localparam FSM_STOP = 3;
 // Output assignment
 // 
 
-assign uart_rx_break = uart_rx_valid && ~|recieved_data && !stop_bit;
+assign uart_rx_break = uart_rx_valid && ~|recieved_data && ~stop_bit;
 assign uart_rx_valid = fsm_state == FSM_STOP && n_fsm_state == FSM_IDLE;
 //assign uart_rx_valid = fsm_state == FSM_STOP && next_bit;
 
@@ -118,10 +119,10 @@ wire payload_done = bit_counter   == PAYLOAD_BITS  ;
 // Handle picking the next state.
 always @(*) begin : p_n_fsm_state
     case(fsm_state)
-        FSM_IDLE : n_fsm_state <= rxd_reg      ? FSM_IDLE : FSM_START; // Start FSM at first BIT
-        FSM_START: n_fsm_state <= next_bit     ? FSM_RECV : FSM_START; // Start bit done 
-        FSM_RECV : n_fsm_state <= payload_done ? FSM_STOP : FSM_RECV ; // Payload done
-        FSM_STOP : n_fsm_state <= next_bit     ? FSM_IDLE : FSM_STOP ; // 
+        FSM_IDLE : n_fsm_state <= rxd_reg       ? FSM_IDLE : FSM_START; // Start FSM at first BIT
+        FSM_START: n_fsm_state <= next_bit      ? FSM_RECV : FSM_START; // Start bit done 
+        FSM_RECV : n_fsm_state <= payload_done  ? FSM_STOP : FSM_RECV ; // Payload done
+        FSM_STOP : n_fsm_state <= stop_bit_done ? FSM_IDLE : FSM_STOP ; // 
         default  : n_fsm_state <= FSM_IDLE;
     endcase
 end
@@ -134,6 +135,7 @@ end
 // Handle updates to the recieved data register.
 integer i = 0;
 always @(posedge clk) begin : p_recieved_data
+    stop_bit_done <= 1'b0;
     if(!resetn) begin
         recieved_data <= {PAYLOAD_BITS{1'b0}};
         stop_bit <= 1'b0;
@@ -141,7 +143,8 @@ always @(posedge clk) begin : p_recieved_data
         recieved_data <= {PAYLOAD_BITS{1'b0}};
         stop_bit <= 1'b0;
     end else if(fsm_state == FSM_STOP && next_bit ) begin
-      stop_bit <= bit_sample;
+        stop_bit <= bit_sample;
+	stop_bit_done <= 1'b1;
     end else if(fsm_state == FSM_RECV && next_bit ) begin
         recieved_data[PAYLOAD_BITS-1] <= bit_sample;
         for ( i = PAYLOAD_BITS-2; i >= 0; i = i - 1) begin

@@ -23,6 +23,7 @@ logic resetn;
 //wire  uart_txd;
 wire  uart_tx_busy;
 logic  uart_tx_en;
+logic  uart_tx_break;
 logic [7:0]   uart_tx_data;
 //
 uart_tx  #(.CLK_HZ(CLK_HZ))  uart_tx1(
@@ -31,6 +32,7 @@ uart_tx  #(.CLK_HZ(CLK_HZ))  uart_tx1(
 .uart_txd(uart_tx) ,
 .uart_tx_busy,
 .uart_tx_en ,
+.uart_tx_break ,
 .uart_tx_data
 );
 
@@ -40,9 +42,10 @@ uart_tx  #(.CLK_HZ(CLK_HZ))  uart_tx1(
 
   initial begin
         uart_tx_en = 1'b0;
+        uart_tx_break = 1'b0;
         resetn = 1'b0;
         @(posedge clk)
-        @(posedge clk)
+        @(negedge clk)
         resetn = 1'b1;
         @(posedge clk);
 
@@ -56,12 +59,19 @@ uart_tx  #(.CLK_HZ(CLK_HZ))  uart_tx1(
         @(posedge clk);
 	// Send a single bit
         uart_tx_en  = 1'b1;
-        uart_tx_data = ascii[7:0];
+        uart_tx_data = 8'h00;
         @(posedge clk);
         uart_tx_en = 1'b0;
 
-
-        #200000 $finish();
+        wait(uart_rx_valid);
+        wait(!uart_rx_valid);
+        uart_tx_en  = 1'b1;
+        uart_tx_data = 8'haa;
+        uart_tx_break = 1'b1;
+        wait(uart_rx_valid);
+        uart_tx_en = 1'b0;
+        uart_tx_break  = 1'b0;
+        #20 $finish();
   end
 
   always @(posedge clk) begin

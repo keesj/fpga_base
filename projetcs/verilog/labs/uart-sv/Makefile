@@ -1,6 +1,6 @@
 TOP_MODULE=top
-#TB_SRC=src/sim/$(TOP_MODULE)_tb.sv
-TB_SRC=src/sim/uart_txrx_tb.sv
+TB_SRC=src/sim/$(TOP_MODULE)_tb.sv
+#TB_SRC=src/sim/uart_txrx_tb.sv
 TOP_SRC=src/rtl/top.sv src/rtl/uart_rx.sv src/rtl/uart_tx.sv
 SIM_SRC=$(TOP_SRC) $(TB_SRC)
 FPGA_PCF=src/syn/icestick.pcf
