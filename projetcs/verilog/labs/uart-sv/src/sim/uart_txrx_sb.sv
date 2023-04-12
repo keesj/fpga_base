@@ -11,7 +11,6 @@ module top_tb;
   wire        led2;
   wire        led3;
   wire        led4;
-  wire        led5;
   top #(.CLK_HZ(CLK_HZ)) top1(
     .clk,
     .uart_rxd,

@@ -65,7 +65,7 @@ reg rxd_reg_0;
 reg [PAYLOAD_BITS-1:0] recieved_data;
 
 //
-// Storage for the stop bit to detect BREAK
+// Storage for the stop bit value to detect BREAK
 reg stop_bit;
 
 //
@@ -94,8 +94,9 @@ localparam FSM_STOP = 3;
 // Output assignment
 // 
 
-assign uart_rx_break = uart_rx_valid && ~|recieved_data && stop_bit;
+assign uart_rx_break = uart_rx_valid && ~|recieved_data && !stop_bit;
 assign uart_rx_valid = fsm_state == FSM_STOP && n_fsm_state == FSM_IDLE;
+//assign uart_rx_valid = fsm_state == FSM_STOP && next_bit;
 
 always @(posedge clk) begin
     if(!resetn) begin
@@ -117,11 +118,11 @@ wire payload_done = bit_counter   == PAYLOAD_BITS  ;
 // Handle picking the next state.
 always @(*) begin : p_n_fsm_state
     case(fsm_state)
-        FSM_IDLE : n_fsm_state = rxd_reg      ? FSM_IDLE : FSM_START; // Start FSM at first BIT
-        FSM_START: n_fsm_state = next_bit     ? FSM_RECV : FSM_START; // Start bit done 
-        FSM_RECV : n_fsm_state = payload_done ? FSM_STOP : FSM_RECV ; // Payload done
-        FSM_STOP : n_fsm_state = next_bit     ? FSM_IDLE : FSM_STOP ; // 
-        default  : n_fsm_state = FSM_IDLE;
+        FSM_IDLE : n_fsm_state <= rxd_reg      ? FSM_IDLE : FSM_START; // Start FSM at first BIT
+        FSM_START: n_fsm_state <= next_bit     ? FSM_RECV : FSM_START; // Start bit done 
+        FSM_RECV : n_fsm_state <= payload_done ? FSM_STOP : FSM_RECV ; // Payload done
+        FSM_STOP : n_fsm_state <= next_bit     ? FSM_IDLE : FSM_STOP ; // 
+        default  : n_fsm_state <= FSM_IDLE;
     endcase
 end
 
@@ -138,9 +139,9 @@ always @(posedge clk) begin : p_recieved_data
         stop_bit <= 1'b0;
     end else if(fsm_state == FSM_IDLE             ) begin
         recieved_data <= {PAYLOAD_BITS{1'b0}};
-//        stop_bit <= 1'b0;
+        stop_bit <= 1'b0;
     end else if(fsm_state == FSM_STOP && next_bit ) begin
-	stop_bit <= bit_sample;
+      stop_bit <= bit_sample;
     end else if(fsm_state == FSM_RECV && next_bit ) begin
         recieved_data[PAYLOAD_BITS-1] <= bit_sample;
         for ( i = PAYLOAD_BITS-2; i >= 0; i = i - 1) begin
@@ -209,6 +210,5 @@ always @(posedge clk) begin : p_rxd_reg
         rxd_reg_0   <= uart_rxd;
     end
 end
-
 
 endmodule

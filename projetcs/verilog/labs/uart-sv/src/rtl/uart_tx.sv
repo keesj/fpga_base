@@ -8,11 +8,12 @@
 //
 
 module uart_tx(
-input  wire         clk         , // Top level system clock input.
-input  wire         resetn      , // Asynchronous active low reset.
-output wire         uart_txd    , // UART transmit pin.
-output wire         uart_tx_busy, // Module busy sending previous item.
-input  wire         uart_tx_en  , // Send the data on uart_tx_data
+input  wire         clk           , // Top level system clock input.
+input  wire         resetn        , // Asynchronous active low reset.
+output wire         uart_txd      , // UART transmit pin.
+output wire         uart_tx_busy  , // Module busy sending previous item.
+input  wire         uart_tx_en    , // Send the data on uart_tx_data
+input  wire         uart_tx_break , // break
 input  wire [PAYLOAD_BITS-1:0]   uart_tx_data  // The data to be sent
 );
 
@@ -62,6 +63,7 @@ reg txd_reg;
 //
 // Storage for the serial data to be sent.
 reg [PAYLOAD_BITS-1:0] data_to_send;
+reg uart_break;
 
 //
 // Counter for the number of cycles over a packet bit.
@@ -119,8 +121,14 @@ integer i = 0;
 always @(posedge clk) begin : p_data_to_send
     if(!resetn) begin
         data_to_send <= {PAYLOAD_BITS{1'b0}};
+        uart_break <= 1'b0;
     end else if(fsm_state == FSM_IDLE && uart_tx_en) begin
-        data_to_send <= uart_tx_data;
+            uart_break <= uart_tx_break;
+	    if (uart_tx_break) begin
+              data_to_send <= {PAYLOAD_BITS{1'b0}};
+            end else begin
+              data_to_send <= uart_tx_data;
+	    end
     end else if(fsm_state       == FSM_SEND       && next_bit ) begin
         for ( i = PAYLOAD_BITS-2; i >= 0; i = i - 1) begin
             data_to_send[i] <= data_to_send[i+1];
@@ -184,7 +192,7 @@ always @(posedge clk) begin : p_txd_reg
     end else if(fsm_state == FSM_SEND) begin
         txd_reg <= data_to_send[0];
     end else if(fsm_state == FSM_STOP) begin
-        txd_reg <= 1'b1;
+        txd_reg <= (uart_break)? 1'b0:1'b1;
     end
 end
 

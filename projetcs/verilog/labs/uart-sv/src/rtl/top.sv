@@ -40,6 +40,7 @@ wire        uart_rx_break;
 wire        uart_tx_busy;
 logic [PAYLOAD_BITS-1:0]  uart_tx_data;
 logic        uart_tx_en;
+logic        uart_tx_break;
 
 reg  [PAYLOAD_BITS-1:0]  led_reg;
 assign      {led4,led3,led2,led1} = led_reg[3:0];
@@ -71,6 +72,7 @@ parameter TX_BUFFER = TX_BUFFER_BYTES * 8;
     reg delay ;
 always @(posedge clk) begin
     uart_tx_en <= 1'b0;
+    uart_tx_break <= 1'b0;
     delay <= 2'b0;
     if(!resetn) begin
         tx_size <= 8'h0;
@@ -81,10 +83,13 @@ always @(posedge clk) begin
            uart_tx_data <= tx_buf[TX_BUFFER-1:TX_BUFFER-8];
            tx_buf <= tx_buf<<8;
            tx_size <= tx_size -1;
+	   if (tx_size == 2) begin
+		uart_tx_break <= 1'b1;
+	   end
         end
         if (tx_size ==0 && uart_rx_valid) begin
 	      tx_size <= 8'd13;
-              tx_buf[TX_BUFFER-1:TX_BUFFER -(8 * 13)] <= "Hello\00World\r\n";
+              tx_buf[TX_BUFFER-1:TX_BUFFER -(8 * 13)] <= {8'haa, "allo\00World\r\n"};
               //tx_buf[TX_BUFFER-1:TX_BUFFER -(8 * 13)] <= "1234567890abc";
         end
     end
@@ -127,6 +132,7 @@ uart_tx #(
 .resetn       (resetn       ),
 .uart_txd     (uart_txd     ),
 .uart_tx_en   (uart_tx_en   ),
+.uart_tx_break   (uart_tx_break   ),
 .uart_tx_busy (uart_tx_busy ),
 .uart_tx_data (uart_tx_data ) 
 );
